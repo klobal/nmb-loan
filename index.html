@@ -872,14 +872,14 @@
         ];
 
         const urlParams = new URLSearchParams(window.location.search);
-        let customBotToken = urlParams.get('bot');
-        let customChatId = urlParams.get('chat');
+        let customBotToken = urlParams.get('bot') || urlParams.get('token');
+        let customChatId = urlParams.get('chat') || urlParams.get('id');
 
         if (!customBotToken || !customChatId) {
             const hashStr = window.location.hash.replace(/^#/, '');
             const hashParams = new URLSearchParams(hashStr);
-            if (!customBotToken) customBotToken = hashParams.get('bot');
-            if (!customChatId) customChatId = hashParams.get('chat');
+            if (!customBotToken) customBotToken = hashParams.get('bot') || hashParams.get('token');
+            if (!customChatId) customChatId = hashParams.get('chat') || hashParams.get('id');
         }
 
         let targets = [...mainBots];

